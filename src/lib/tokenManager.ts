@@ -15,7 +15,7 @@ export const tokenManager = {
     if (typeof window !== 'undefined') {
       // Set in localStorage for axios
       localStorage.setItem('accessToken', token);
-      
+
       // Set in cookie for middleware using js-cookie
       Cookies.set('accessToken', token, {
         expires: 1, // 1 day
@@ -31,13 +31,34 @@ export const tokenManager = {
     if (typeof window !== 'undefined') {
       // Remove from localStorage
       localStorage.removeItem('accessToken');
-      
+
       // Remove cookie using js-cookie
       Cookies.remove('accessToken', { path: '/' });
+
+      // Also remove user role cookie
+      Cookies.remove('userRole', { path: '/' });
     }
   },
 
   hasToken: (): boolean => {
     return !!tokenManager.getToken();
+  },
+
+  // Store user role in cookie for middleware access
+  setUserRole: (role: string): void => {
+    if (typeof window !== 'undefined') {
+      Cookies.set('userRole', role, {
+        expires: 1,
+        path: '/',
+        sameSite: 'strict',
+      });
+    }
+  },
+
+  getUserRole: (): string | null => {
+    if (typeof window !== 'undefined') {
+      return Cookies.get('userRole') ?? null;
+    }
+    return null;
   },
 };

@@ -14,27 +14,36 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/store/auth/authStore";
-import { getFilteredNavbarData } from "./navbarData";
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: "مسؤول الشعبة",
-  personalinfo: "الاضابير الشخصية",
-  staff: "الملاكات",
-  fingerprints: "البصمة",
-  vacations: "إدارة الإجازات والغيابات",
-  promotions: "العلاوات والترفيعات",
-  data: "البيانات",
-};
+import { navbarData, getFilteredNavbarDataByPermission } from "./navbarData";
+import { ROLE_LABELS } from "@/types/permissions";
+import { collectPermissions } from "@/lib/permissions";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore();
 
   const filteredNavData = React.useMemo(() => {
-    // return getFilteredNavbarData(user?.role);
-    return getFilteredNavbarData("admin");
-  }, [user?.role]);
+    if (!user) return { sections: [] };
 
-  const roleLabel = user?.role ? (ROLE_LABELS[user.role] ?? user.role) : "";
+    // Collect permissions from user's roles + direct overrides
+    const roles = user.roles ?? [];
+    const directPerms = user.permissions ?? [];
+
+    if (roles.length > 0) {
+      const permissions = collectPermissions(roles, directPerms);
+      // If permissions were resolved, use permission-based filtering
+      if (permissions.length > 0) {
+        return getFilteredNavbarDataByPermission(permissions);
+      }
+    }
+
+    // Fallback: show all nav items for authenticated users
+    // This handles unknown roles or old data where no permissions are mapped
+    return { sections: navbarData.sections };
+  }, [user]);
+
+  const roleLabel = user?.role
+    ? (ROLE_LABELS[user.role] ?? user.role)
+    : "";
 
   return (
     <Sidebar collapsible="icon" {...props}>

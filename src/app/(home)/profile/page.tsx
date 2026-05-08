@@ -1,25 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { ShieldCheck, Loader2, Lock } from "lucide-react"
+import { ShieldCheck, Loader2, Lock, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { useAuthStore } from "@/store/auth/authStore"
 import { useAuth } from "@/hooks/useAuth"
 import { toast } from "sonner"
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: "مسؤول",
-  personalinfo: "الاضابير الشخصية",
-  staff: "الملاكات",
-  fingerprints: "البصمة",
-  vacations: "إدارة الإجازات والغيابات",
-  promotions: "العلاوات والترفيعات",
-  data: "البيانات",
-}
+import { ROLE_LABELS, RESOURCE_LABELS, ACTION_LABELS } from "@/types/permissions"
+import type { Resource, Action } from "@/types/permissions"
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -44,6 +37,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showPermissions, setShowPermissions] = useState(false)
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,6 +78,28 @@ export default function ProfilePage() {
   const fullName = user?.fullName ?? ""
   const role = user?.role ?? ""
   const initial = fullName?.charAt(0)?.toUpperCase() || "U"
+
+  // Collect unique resource-action pairs for display
+  const userPermissions = user?.permissions ?? []
+  const rolePermissions = user?.roles?.flatMap(r => r.permissions ?? []) ?? []
+  const allPerms = [...rolePermissions, ...userPermissions]
+
+  // Deduplicate by resource+action
+  const uniquePerms = Array.from(
+    new Map(allPerms.map(p => [`${p.resource}:${p.action}`, p])).values()
+  )
+
+  // Group by resource
+  const permsByResource = new Map<Resource, Action[]>()
+  for (const p of uniquePerms) {
+    const existing = permsByResource.get(p.resource) ?? []
+    if (p.action === "manage") {
+      existing.push("read", "write", "delete", "manage")
+    } else {
+      existing.push(p.action)
+    }
+    permsByResource.set(p.resource, [...new Set(existing)])
+  }
 
   return (
     <div className="flex max-w-3xl flex-col gap-8 p-6">
@@ -140,11 +156,69 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">الأدوار</p>
+                    <div className="flex flex-wrap gap-1">
+                      {user?.roles && user.roles.length > 0 ? (
+                        user.roles.map((r) => (
+                          <Badge key={r.id} variant="secondary" className="text-xs">
+                            {ROLE_LABELS[r.id] || r.name || r.id}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
+      </section>
+
+      {/* Permissions Card */}
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <SectionHeader title="الصلاحيات" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPermissions(!showPermissions)}
+            className="gap-1.5"
+          >
+            <Eye className="h-4 w-4" />
+            {showPermissions ? "إخفاء" : "عرض الصلاحيات"}
+          </Button>
+        </div>
+        {showPermissions && (
+          <Card>
+            <CardContent className="pt-6">
+              {permsByResource.size === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  لا توجد صلاحيات محددة (الوصول الافتراضي حسب الدور)
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {Array.from(permsByResource.entries()).map(([resource, actions]) => (
+                    <div key={resource} className="flex items-center justify-between rounded-lg border p-3">
+                      <span className="text-sm font-medium">
+                        {RESOURCE_LABELS[resource] || resource}
+                      </span>
+                      <div className="flex gap-1.5">
+                        {actions.map((action) => (
+                          <Badge key={action} variant="outline" className="text-xs">
+                            {ACTION_LABELS[action] || action}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       <Separator />

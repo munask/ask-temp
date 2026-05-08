@@ -1,10 +1,17 @@
 // Auth-related TypeScript types
 
+import type { Permission, Role } from "@/types/permissions"
+
 export interface User {
   id: number
   userName: string
   fullName: string
+  /** @deprecated Use roles[] instead. Kept for backward compat with backend. */
   role: string
+  /** User's assigned roles (from backend or resolved from role string) */
+  roles: Role[]
+  /** Direct per-user permission overrides (on top of role permissions) */
+  permissions: Permission[]
   isTempPass: boolean
   createdAt?: string
   updatedAt?: string

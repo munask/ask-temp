@@ -3,9 +3,50 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { tokenManager } from "@/lib/tokenManager"
+import { ROLE_PERMISSIONS } from "@/types/permissions"
+import type { Role, Permission } from "@/types/permissions"
 
-// Import types from authTypes
 import type { User } from './authTypes';
+
+// ─── Normalize User Data ─────────────────────────────────────────────────
+// The backend may return:
+//   - Old format: { role: "admin" }  (no roles/permissions arrays)
+//   - New format: { roles: [...], permissions: [...] }  (may lack role string)
+// This normalizes both into a consistent shape.
+
+function normalizeUser(raw: User): User {
+  // If roles array is missing but role string exists, build roles from it
+  if ((!raw.roles || raw.roles.length === 0) && raw.role) {
+    const rolePermissions = ROLE_PERMISSIONS[raw.role] ?? []
+    const roles: Role[] = [
+      {
+        id: raw.role,
+        name: raw.role,
+        permissions: rolePermissions,
+      },
+    ]
+    return {
+      ...raw,
+      roles,
+      permissions: raw.permissions ?? [],
+    }
+  }
+
+  // If role string is missing but roles array exists, derive role from first role
+  if ((!raw.role || raw.role === "") && raw.roles && raw.roles.length > 0) {
+    return {
+      ...raw,
+      role: raw.roles[0].id,
+    }
+  }
+
+  // Ensure defaults
+  return {
+    ...raw,
+    roles: raw.roles ?? [],
+    permissions: raw.permissions ?? [],
+  }
+}
 
 interface AuthState {
   user: User | null
@@ -22,7 +63,6 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions
 
-// Zustand Auth Store (following the plan pattern)
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -32,11 +72,15 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: false,
 
       // Actions
-      setAuth: (user: User, token: string) => {
-        // Save token using tokenManager (localStorage + cookies)
+      setAuth: (rawUser: User, token: string) => {
+        const user = normalizeUser(rawUser)
         tokenManager.setToken(token)
-        
-        // Update store state
+
+        // Store user role in cookie for middleware access
+        if (user.role) {
+          tokenManager.setUserRole(user.role)
+        }
+
         set({
           user,
           isAuthenticated: true,
@@ -45,10 +89,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       clearAuth: () => {
-        // Clear token from localStorage + cookies
         tokenManager.removeToken()
-        
-        // Clear store state
+
         set({
           user: null,
           isAuthenticated: false,
@@ -64,12 +106,11 @@ export const useAuthStore = create<AuthStore>()(
         const hasToken = tokenManager.hasToken()
         const { user } = get()
         const isAuth = hasToken && !!user
-        
-        // Update authentication state if it changed
+
         if (isAuth !== get().isAuthenticated) {
           set({ isAuthenticated: isAuth })
         }
-        
+
         return isAuth
       }
     }),
@@ -80,10 +121,19 @@ export const useAuthStore = create<AuthStore>()(
         isAuthenticated: state.isAuthenticated
       }),
       onRehydrateStorage: () => {
-        return (_state, error) => {
+        return (state, error) => {
           if (error) console.error("Failed to rehydrate auth store:", error)
+          // Re-normalize user data after rehydration from localStorage
+          if (state?.user) {
+            state.user = normalizeUser(state.user)
+          }
         }
       }
     }
   )
 )
+
+// ─── Re-export helpers for direct import ─────────────────────────────────
+// Useful for non-React contexts (middleware, utilities).
+
+export type { Role, Permission }

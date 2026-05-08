@@ -51,11 +51,12 @@ export default function RootLayout({
       >
         <Providers>{children}</Providers>
         <Toaster
-          position="top-center"
+          position="bottom-center"
           dir="rtl"
           gap={12}
           richColors
           closeButton
+          visibleToasts={1}
           toastOptions={{
             unstyled: false,
             className: "toast-branded",

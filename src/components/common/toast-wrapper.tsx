@@ -7,7 +7,6 @@ import {
   XCircle,
   AlertTriangle,
   Info,
-  Loader2,
 } from "lucide-react"
 import React from "react"
 
@@ -51,7 +50,6 @@ export function showToast(type: ToastType, message?: string, options?: ToastOpti
     description: options?.description,
     duration,
     icon: toastIcons[type],
-    dir: "rtl",
   }
 
   switch (type) {
@@ -79,7 +77,6 @@ export function toastLoading(message: string, options?: { description?: string }
   return toast.loading(message, {
     description: options?.description,
     icon: React.createElement("div", { className: "toast-spinner" }),
-    dir: "rtl",
     duration: Infinity,
   })
 }

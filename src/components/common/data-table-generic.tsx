@@ -109,10 +109,11 @@ export function DataTableGeneric<T extends { id: number | string }>({
         <TableHeader>
           <TableRow>
             {hasSelection && (
-              <TableHead className="w-10">
+              <TableHead className="w-10 text-center">
                 <Checkbox
                   checked={allSelected}
                   onCheckedChange={handleToggleAll}
+                  className="mx-auto"
                 />
               </TableHead>
             )}
@@ -161,10 +162,11 @@ export function DataTableGeneric<T extends { id: number | string }>({
                 onClick={() => onRowClick?.(row)}
               >
                 {hasSelection && (
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={selectedIds?.has(row.id)}
                       onCheckedChange={() => handleToggleOne(row.id)}
+                      className="mx-auto"
                     />
                   </TableCell>
                 )}
