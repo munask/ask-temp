@@ -36,6 +36,7 @@ const arabicDates = [
 ]
 
 const ALL_DATA: DataRecord[] = Array.from({ length: 97 }, (_, i) => ({
+  id: i + 1,
   rowNumber: i + 1,
   value: arabicValues[i % arabicValues.length] + ` - ${i + 1}`,
   date: arabicDates[i % arabicDates.length],
@@ -417,7 +418,7 @@ export default function DataReport() {
             <FileText size={40} style={{ color: "#d1d5db" }} />
             <p style={{ fontSize: "14px", fontWeight: 600 }}>لم يتم تطبيق الفلاتر بعد</p>
             <p style={{ fontSize: "12px", color: "#9ca3af" }}>
-              اختر الفلاتر المطلوبة ثم اضغط "تطبيق الفلاتر"
+              اختر الفلاتر المطلوبة ثم اضغط &quot;تطبيق الفلاتر&quot;
             </p>
           </div>
         )}

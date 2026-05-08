@@ -17,6 +17,7 @@
     "react"
   ],
   "files": [
+    ".ai-rules",
     ".claude",
     "bin",
     "public",
@@ -68,9 +69,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.536.0",
     "next": "15.4.5",
     "next-themes": "^0.4.6",
@@ -90,6 +94,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/axios": "^0.9.36",
     "@types/file-saver": "^2.0.7",
+    "@types/html2canvas": "^1.0.0",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19",

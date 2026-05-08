@@ -152,3 +152,348 @@ html {
 .page-enter {
   animation: page-enter 0.2s ease-out;
 }
+
+/* ─── Sonner Toast Branding ─── */
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+}
+
+@keyframes toast-swirl-in {
+  from {
+    opacity: 0;
+    transform: rotate(-2deg) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes toast-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Toast container – RTL and spacing */
+[data-sonner-toaster] {
+  direction: rtl;
+  font-family: var(--font-cairo), Cairo, system-ui, sans-serif !important;
+  z-index: 9999 !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] {
+  direction: rtl;
+  animation: toast-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  min-height: auto !important;
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+  box-shadow:
+    0 4px 24px -4px oklch(0.15 0.05 240 / 0.18),
+    0 1px 6px -2px oklch(0.15 0.05 240 / 0.08) !important;
+  border: 1px solid oklch(0.85 0.02 240 / 0.4) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glassmorphism background for light mode */
+[data-sonner-toaster] [data-sonner-toast] {
+  background: oklch(0.99 0.002 240 / 0.88) !important;
+  color: oklch(0.15 0.025 240) !important;
+}
+
+.dark [data-sonner-toaster] [data-sonner-toast],
+[data-sonner-toaster][data-theme="dark"] [data-sonner-toast] {
+  background: oklch(0.18 0.03 240 / 0.92) !important;
+  color: oklch(0.93 0.005 240) !important;
+  border-color: oklch(0.30 0.04 240 / 0.5) !important;
+  box-shadow:
+    0 4px 32px -4px oklch(0 0 0 / 0.35),
+    0 1px 8px -2px oklch(0 0 0 / 0.2) !important;
+}
+
+/* Accent bar on the right side (RTL: right = start) */
+[data-sonner-toaster] [data-sonner-toast]::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  right: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--toast-accent, oklch(0.55 0.15 192));
+  opacity: 0.9;
+}
+
+/* Subtle shimmer overlay */
+[data-sonner-toaster] [data-sonner-toast]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    oklch(1 0 0 / 0.06) 0%,
+    transparent 50%,
+    oklch(1 0 0 / 0.03) 100%
+  );
+}
+
+/* ─── Type-specific accent colors ─── */
+
+[data-sonner-toaster] [data-type="success"] {
+  --toast-accent: oklch(0.65 0.19 155);
+}
+[data-sonner-toaster] [data-type="success"]::before {
+  background: oklch(0.65 0.19 155);
+}
+
+[data-sonner-toaster] [data-type="error"] {
+  --toast-accent: oklch(0.577 0.245 27.325);
+}
+[data-sonner-toaster] [data-type="error"]::before {
+  background: oklch(0.577 0.245 27.325);
+}
+
+[data-sonner-toaster] [data-type="warning"] {
+  --toast-accent: oklch(0.78 0.16 75);
+}
+[data-sonner-toaster] [data-type="warning"]::before {
+  background: oklch(0.78 0.16 75);
+}
+
+[data-sonner-toaster] [data-type="info"] {
+  --toast-accent: oklch(0.62 0.18 240);
+}
+[data-sonner-toaster] [data-type="info"]::before {
+  background: oklch(0.62 0.18 240);
+}
+
+/* Default / loading accent */
+[data-sonner-toaster] [data-type="loading"] {
+  --toast-accent: oklch(0.55 0.15 192);
+}
+[data-sonner-toaster] [data-type="loading"]::before {
+  background: oklch(0.55 0.15 192);
+}
+
+/* ─── Toast content layout ─── */
+
+[data-sonner-toast] [data-content] {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  direction: rtl;
+  padding-left: 0 !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
+  letter-spacing: -0.01em !important;
+  color: inherit;
+}
+
+[data-sonner-toast] [data-description] {
+  font-weight: 400 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.55 !important;
+  opacity: 0.75;
+  color: inherit;
+  margin-top: 2px;
+}
+
+/* ─── Icon styling ─── */
+
+[data-sonner-toast] [data-icon] {
+  flex-shrink: 0;
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0 !important;
+  margin-left: 4px !important;
+  padding: 0 !important;
+}
+
+[data-sonner-toast] [data-icon] svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* ─── Close button ─── */
+
+[data-sonner-toast] [data-close-button] {
+  background: oklch(0 0 0 / 0.05) !important;
+  border: none !important;
+  color: inherit !important;
+  opacity: 0.5;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  right: auto !important;
+  left: 6px !important;
+  top: 6px !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  opacity: 1;
+  background: oklch(0 0 0 / 0.1) !important;
+}
+
+.dark [data-sonner-toast] [data-close-button],
+[data-sonner-toast][data-theme="dark"] [data-close-button] {
+  background: oklch(1 0 0 / 0.08) !important;
+}
+.dark [data-sonner-toast] [data-close-button]:hover,
+[data-sonner-toast][data-theme="dark"] [data-close-button]:hover {
+  background: oklch(1 0 0 / 0.15) !important;
+}
+
+/* ─── Action button ─── */
+
+[data-sonner-toast] [data-button] {
+  background: oklch(0.55 0.15 192) !important;
+  color: oklch(0.98 0 0) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-family: var(--font-cairo), Cairo, system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-sonner-toast] [data-button]:hover {
+  background: oklch(0.48 0.14 192) !important;
+}
+
+/* ─── Cancel button ─── */
+
+[data-sonner-toast] [data-cancel] {
+  background: oklch(0 0 0 / 0.06) !important;
+  color: inherit !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-family: var(--font-cairo), Cairo, system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.8rem !important;
+  transition: all 0.2s ease !important;
+}
+
+/* ─── Toast progress bar ─── */
+
+[data-sonner-toast] [data-progress-bar] {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 2.5px;
+  border-radius: 0 0 14px 14px !important;
+  transform-origin: right;
+  animation: toast-progress var(--duration, 4s) linear forwards;
+}
+
+[data-sonner-toast][data-type="success"] [data-progress-bar] {
+  background: oklch(0.65 0.19 155 / 0.5) !important;
+}
+[data-sonner-toast][data-type="error"] [data-progress-bar] {
+  background: oklch(0.577 0.245 27.325 / 0.5) !important;
+}
+[data-sonner-toast][data-type="warning"] [data-progress-bar] {
+  background: oklch(0.78 0.16 75 / 0.5) !important;
+}
+[data-sonner-toast][data-type="info"] [data-progress-bar] {
+  background: oklch(0.62 0.18 240 / 0.5) !important;
+}
+[data-sonner-toast][data-type="loading"] [data-progress-bar] {
+  background: oklch(0.55 0.15 192 / 0.4) !important;
+}
+
+/* ─── Hover state ─── */
+
+[data-sonner-toast]:hover {
+  box-shadow:
+    0 8px 32px -4px oklch(0.15 0.05 240 / 0.22),
+    0 2px 10px -2px oklch(0.15 0.05 240 / 0.1) !important;
+  transform: translateY(-1px) scale(1.005) !important;
+}
+
+.dark [data-sonner-toast]:hover,
+[data-sonner-toast][data-theme="dark"]:hover {
+  box-shadow:
+    0 8px 40px -4px oklch(0 0 0 / 0.4),
+    0 2px 12px -2px oklch(0 0 0 / 0.25) !important;
+}
+
+/* ─── Exit animation ─── */
+
+[data-sonner-toast][data-removed="true"] {
+  animation: toast-slide-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+/* ─── Custom toast icon backgrounds ─── */
+
+.toast-icon-success {
+  color: oklch(0.55 0.19 155);
+}
+
+.toast-icon-error {
+  color: oklch(0.577 0.245 27.325);
+}
+
+.toast-icon-warning {
+  color: oklch(0.72 0.16 75);
+}
+
+.toast-icon-info {
+  color: oklch(0.55 0.18 240);
+}
+
+/* ─── Loading spinner ─── */
+
+.toast-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid oklch(0.55 0.15 192 / 0.2);
+  border-top-color: oklch(0.55 0.15 192);
+  border-radius: 50%;
+  animation: toast-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}

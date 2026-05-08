@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Label } from "recharts"
-import { TrendingUp } from "lucide-react"
+import { TrendingUp, Database, Users, FileText, Activity } from "lucide-react"
 
 import {
   Card,
@@ -18,6 +18,49 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+  StatisticsCardsSkeleton,
+  ChartSkeleton,
+} from "@/components/common/skeleton-loader"
+
+// ─── KPI data ────────────────────────────────────────────────────────────────
+
+const statsCards = [
+  {
+    title: "إجمالي السجلات",
+    value: "1,247",
+    change: "+12.5%",
+    changeLabel: "من الشهر الماضي",
+    icon: Database,
+    trend: "up" as const,
+  },
+  {
+    title: "المستخدمين النشطين",
+    value: "84",
+    change: "+3.2%",
+    changeLabel: "من الشهر الماضي",
+    icon: Users,
+    trend: "up" as const,
+  },
+  {
+    title: "التقارير المُنشأة",
+    value: "156",
+    change: "+8.1%",
+    changeLabel: "من الشهر الماضي",
+    icon: FileText,
+    trend: "up" as const,
+  },
+  {
+    title: "معدل النشاط",
+    value: "94.2%",
+    change: "-1.4%",
+    changeLabel: "من الشهر الماضي",
+    icon: Activity,
+    trend: "down" as const,
+  },
+]
+
+// ─── Chart data ──────────────────────────────────────────────────────────────
 
 const chartData = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
@@ -235,8 +278,14 @@ function PieChartComponent() {
 }
 
 export default function Home() {
+  const [isLoading, setIsLoading] = React.useState(true)
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("desktop")
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
   const total = React.useMemo(
     () => ({
@@ -246,87 +295,144 @@ export default function Home() {
     []
   )
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <StatisticsCardsSkeleton />
+        <div className="flex gap-4">
+          <ChartSkeleton className="flex-[7]" />
+          <div className="flex-[3]">
+            <ChartSkeleton />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex gap-4">
-      <Card className="py-0 flex-[7]">
-        <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
-          <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
-            <CardTitle>المخطط الشريطي - تفاعلي</CardTitle>
-            <CardDescription>
-              عرض إجمالي الزوار للأشهر الثلاثة الماضية
-            </CardDescription>
-          </div>
-          <div className="flex">
-            {["desktop", "mobile"].map((key) => {
-              const chart = key as keyof typeof chartConfig
-              return (
-                <button
-                  key={chart}
-                  data-active={activeChart === chart}
-                  className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
-                  onClick={() => setActiveChart(chart)}
-                >
-                  <span className="text-muted-foreground text-xs">
-                    {chartConfig[chart].label}
-                  </span>
-                  <span className="text-lg leading-none font-bold sm:text-3xl">
-                    {total[key as keyof typeof total].toLocaleString()}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </CardHeader>
-        <CardContent className="px-2 sm:p-6">
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[250px] w-full"
-          >
-            <BarChart
-              accessibilityLayer
-              data={chartData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return date.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })
+    <div className="space-y-6">
+      {/* KPI Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {statsCards.map((stat) => (
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-md"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--brand-gradient-a), var(--brand-gradient-b))",
                 }}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    className="w-[150px]"
-                    nameKey="views"
-                    labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    }}
-                  />
-                }
-              />
-              <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-      <div className="flex-[3]">
-        <PieChartComponent />
+              >
+                <stat.icon className="h-4 w-4 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                <span
+                  className={
+                    stat.trend === "up"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                  }
+                >
+                  {stat.change}
+                </span>{" "}
+                {stat.changeLabel}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts */}
+      <div className="flex gap-4">
+        <Card className="py-0 flex-[7]">
+          <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
+            <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
+              <CardTitle>المخطط الشريطي - تفاعلي</CardTitle>
+              <CardDescription>
+                عرض إجمالي الزوار للأشهر الثلاثة الماضية
+              </CardDescription>
+            </div>
+            <div className="flex">
+              {["desktop", "mobile"].map((key) => {
+                const chart = key as keyof typeof chartConfig
+                return (
+                  <button
+                    key={chart}
+                    data-active={activeChart === chart}
+                    className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
+                    onClick={() => setActiveChart(chart)}
+                  >
+                    <span className="text-muted-foreground text-xs">
+                      {chartConfig[chart].label}
+                    </span>
+                    <span className="text-lg leading-none font-bold sm:text-3xl">
+                      {total[key as keyof typeof total].toLocaleString()}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </CardHeader>
+          <CardContent className="px-2 sm:p-6">
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-[250px] w-full"
+            >
+              <BarChart
+                accessibilityLayer
+                data={chartData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tickFormatter={(value) => {
+                    const date = new Date(value)
+                    return date.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      className="w-[150px]"
+                      nameKey="views"
+                      labelFormatter={(value) => {
+                        return new Date(value).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      }}
+                    />
+                  }
+                />
+                <Bar
+                  dataKey={activeChart}
+                  fill={`var(--color-${activeChart})`}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+        <div className="flex-[3]">
+          <PieChartComponent />
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -10,19 +10,42 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import type { DataRecord } from "./data-types"
+import { useDataStore } from "@/store/data/dataStore"
+import type { DataRecord } from "@/store/data/dataTypes"
 
 interface DataModalProps {
-  open: boolean
-  onClose: () => void
   onAdd: (record: DataRecord) => void
+  onUpdate: (record: DataRecord) => void
   nextRowNumber: number
 }
 
-export default function DataModal({ open, onClose, onAdd, nextRowNumber }: DataModalProps) {
+export default function DataModal({
+  onAdd,
+  onUpdate,
+  nextRowNumber,
+}: DataModalProps) {
+  const { isAddModalOpen, isEditModalOpen, selectedRecord, closeModals } =
+    useDataStore()
+
+  const isOpen = isAddModalOpen || isEditModalOpen
+  const isEdit = isEditModalOpen && !!selectedRecord
+
   const [value, setValue] = useState("")
   const [date, setDate] = useState("")
   const [errors, setErrors] = useState<{ value?: string; date?: string }>({})
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEdit && selectedRecord) {
+        setValue(selectedRecord.value)
+        setDate(selectedRecord.date)
+      } else {
+        setValue("")
+        setDate("")
+      }
+      setErrors({})
+    }
+  }, [isOpen, isEdit, selectedRecord])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,30 +56,51 @@ export default function DataModal({ open, onClose, onAdd, nextRowNumber }: DataM
       setErrors(newErrors)
       return
     }
-    onAdd({ rowNumber: nextRowNumber, value: value.trim(), date })
+
+    if (isEdit && selectedRecord) {
+      onUpdate({
+        ...selectedRecord,
+        value: value.trim(),
+        date,
+      })
+    } else {
+      onAdd({
+        id: Date.now(),
+        rowNumber: nextRowNumber,
+        value: value.trim(),
+        date,
+      })
+    }
+
     setValue("")
     setDate("")
     setErrors({})
-    onClose()
+    closeModals()
   }
 
   const handleClose = () => {
     setValue("")
     setDate("")
     setErrors({})
-    onClose()
+    closeModals()
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[400px]" dir="rtl">
         <DialogHeader>
-          <DialogTitle>إضافة سجل جديد</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "تعديل السجل" : "إضافة سجل جديد"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1">
             <Label>رقم السطر</Label>
-            <Input value={nextRowNumber} disabled className="text-right" />
+            <Input
+              value={isEdit ? selectedRecord?.rowNumber : nextRowNumber}
+              disabled
+              className="text-right"
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="value">القيمة</Label>
@@ -66,11 +110,14 @@ export default function DataModal({ open, onClose, onAdd, nextRowNumber }: DataM
               value={value}
               onChange={(e) => {
                 setValue(e.target.value)
-                if (errors.value) setErrors((prev) => ({ ...prev, value: undefined }))
+                if (errors.value)
+                  setErrors((prev) => ({ ...prev, value: undefined }))
               }}
               className="text-right"
             />
-            {errors.value && <p className="text-sm text-destructive">{errors.value}</p>}
+            {errors.value && (
+              <p className="text-sm text-destructive">{errors.value}</p>
+            )}
           </div>
           <div className="space-y-1">
             <Label htmlFor="date">التاريخ</Label>
@@ -80,17 +127,20 @@ export default function DataModal({ open, onClose, onAdd, nextRowNumber }: DataM
               value={date}
               onChange={(e) => {
                 setDate(e.target.value)
-                if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }))
+                if (errors.date)
+                  setErrors((prev) => ({ ...prev, date: undefined }))
               }}
               className="text-right"
             />
-            {errors.date && <p className="text-sm text-destructive">{errors.date}</p>}
+            {errors.date && (
+              <p className="text-sm text-destructive">{errors.date}</p>
+            )}
           </div>
           <div className="flex justify-start gap-2 pt-2">
             <Button type="button" variant="outline" onClick={handleClose}>
               إلغاء
             </Button>
-            <Button type="submit">إضافة</Button>
+            <Button type="submit">{isEdit ? "تحديث" : "إضافة"}</Button>
           </div>
         </form>
       </DialogContent>

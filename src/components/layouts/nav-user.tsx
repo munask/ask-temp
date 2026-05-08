@@ -7,7 +7,10 @@ import {
   Sun,
   Moon,
   Monitor,
+  User,
+  Settings2,
 } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import {
@@ -89,9 +92,22 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Bell />
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="flex items-center gap-2">
+                <User className="size-4" />
+                الملف الشخصي
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="flex items-center gap-2">
+                <Settings2 className="size-4" />
+                الإعدادات
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled className="gap-2 opacity-50">
+              <Bell className="size-4" />
               الإشعارات
+              <span className="mr-auto text-[10px] text-muted-foreground">قريباً</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <ThemeToggle />

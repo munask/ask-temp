@@ -4,6 +4,8 @@ import {
   LucideIcon,
   Database,
   FileText,
+  User,
+  LayoutGrid,
 } from "lucide-react";
 
 export interface NavItem {
@@ -35,6 +37,11 @@ export const navbarData: NavbarData = {
           icon: SquareTerminal,
         },
         {
+          title: "الملف الشخصي",
+          url: "/profile",
+          icon: User,
+        },
+        {
           title: "الإعدادات",
           url: "/settings",
           icon: Settings2,
@@ -53,6 +60,11 @@ export const navbarData: NavbarData = {
           title: "تقرير البيانات",
           url: "/data-report",
           icon: FileText,
+        },
+        {
+          title: "عرض المكونات",
+          url: "/showcase",
+          icon: LayoutGrid,
         },
       ],
     },

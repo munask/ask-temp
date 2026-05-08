@@ -20,7 +20,7 @@ if (fs.existsSync(targetDir)) {
 }
 
 const IGNORE = new Set([
-  'node_modules', '.next', 'bin', '.git', 'out', 'build', 'coverage', '.turbo'
+  'node_modules', '.next', '.git', 'out', 'build', 'coverage', '.turbo'
 ]);
 
 function copyDir(src, dest) {
@@ -46,10 +46,12 @@ if (fs.existsSync(pkgPath)) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
   pkg.name = projectName;
   delete pkg.bin;
+  pkg.scripts = pkg.scripts || {};
+  pkg.scripts.rules = 'node bin/zvs-rules sync';
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 }
 
 console.log('Installing dependencies...\n');
 execSync('npm install', { cwd: targetDir, stdio: 'inherit' });
 
-console.log(`\nDone! Get started:\n\n  cd ${projectName}\n  npm run dev\n`);
+console.log(`\nDone! Get started:\n\n  cd ${projectName}\n  npm run dev\n\nSetup AI coding rules:\n  node bin/zvs-rules init\n`);

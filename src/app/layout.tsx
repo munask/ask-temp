@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cairo, Tajawal, IBM_Plex_Sans_Arabic, Noto_Sans_Arabic } from "next/font/google";
+import { Toaster } from "sonner";
 import "@/styles/globals.css";
 import { Providers } from "./Providers";
 
@@ -49,6 +50,22 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-cairo), Cairo, system-ui, sans-serif" }}
       >
         <Providers>{children}</Providers>
+        <Toaster
+          position="top-center"
+          dir="rtl"
+          gap={12}
+          richColors
+          closeButton
+          toastOptions={{
+            unstyled: false,
+            className: "toast-branded",
+            duration: 4000,
+            style: {
+              direction: "rtl",
+              fontFamily: "var(--font-cairo), Cairo, system-ui, sans-serif",
+            },
+          }}
+        />
       </body>
     </html>
   );
