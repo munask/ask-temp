@@ -1,9 +1,0 @@
-/* Report modal print styles */
-@media print {
-  .report-preview {
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-    border: none;
-  }
-}
