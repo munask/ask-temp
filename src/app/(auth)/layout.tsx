@@ -4,7 +4,7 @@ type Props = {
 };
 
 export default async function AuthLayout({ children, params }: Props) {
-  void params;
+  await params;
   return (
     <>
       {children}

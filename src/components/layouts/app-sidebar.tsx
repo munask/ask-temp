@@ -19,20 +19,25 @@ import { ROLE_LABELS, ROLE_PERMISSIONS } from "@/types/permissions";
 import type { Role, Permission, Resource } from "@/types/permissions";
 import { collectPermissions } from "@/lib/permissions";
 
-// Resources all authenticated users can read (used as fallback)
+// Resources all authenticated users can read by default (for unknown roles)
 const DEFAULT_READ_RESOURCES: Resource[] = [
   "dashboard", "profile", "settings", "data", "data-report", "showcase",
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
 
   const filteredNavData = React.useMemo(() => {
-    if (!user) return { sections: [] };
+    // Wait for hydration to avoid flash of empty sidebar
+    if (!_hasHydrated) return { sections: [] };
 
-    // Build effective roles from user data (handles old format where roles is empty)
+    // Not authenticated = no sidebar items
+    if (!isAuthenticated || !user) return { sections: [] };
+
+    // Get roles - may be undefined for old localStorage data
     let roles: Role[] = user.roles ?? [];
 
+    // If no roles array but role string exists, build roles from it
     if (roles.length === 0 && user.role) {
       const rolePerms = ROLE_PERMISSIONS[user.role] ?? (
         DEFAULT_READ_RESOURCES.map((r) => ({ resource: r, action: "read" as const }))
@@ -40,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       roles = [{ id: user.role, name: user.role, permissions: rolePerms }];
     }
 
-    const directPerms = user.permissions ?? [];
+    const directPerms: Permission[] = user.permissions ?? [];
     const permissions = collectPermissions(roles, directPerms);
 
     // If permissions were resolved, use permission-based filtering
@@ -48,9 +53,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return getFilteredNavbarDataByPermission(permissions);
     }
 
-    // Last resort: show all nav items
+    // Fallback: show all nav items for any authenticated user
     return { sections: navbarData.sections };
-  }, [user]);
+  }, [user, isAuthenticated, _hasHydrated]);
 
   const roleLabel = user?.role
     ? (ROLE_LABELS[user.role] ?? user.role)

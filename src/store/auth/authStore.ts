@@ -9,7 +9,6 @@ import type { Role, Permission, Resource } from "@/types/permissions"
 import type { User } from './authTypes';
 
 // Resources that all authenticated users can read by default
-// (used for backward compat when the backend returns unmapped roles)
 const ALL_READ_RESOURCES: Resource[] = [
   "dashboard",
   "profile",
@@ -19,18 +18,8 @@ const ALL_READ_RESOURCES: Resource[] = [
   "showcase",
 ]
 
-// ─── Normalize User Data ─────────────────────────────────────────────────
-// The backend may return:
-//   - Old format: { role: "admin" }  (no roles/permissions arrays)
-//   - New format: { roles: [...], permissions: [...] }  (may lack role string)
-// This normalizes both into a consistent shape.
-
 function normalizeUser(raw: User): User {
-  // If roles array is missing but role string exists, build roles from it
   if ((!raw.roles || raw.roles.length === 0) && raw.role) {
-    // If the role is known in ROLE_PERMISSIONS, use its permissions.
-    // Otherwise, grant read access to all non-admin resources (backward compat
-    // for domain-specific roles that aren't mapped in ROLE_PERMISSIONS).
     const rolePermissions = ROLE_PERMISSIONS[raw.role] ?? (
       ALL_READ_RESOURCES.map((resource) => ({ resource, action: "read" as const }))
     )
@@ -48,7 +37,6 @@ function normalizeUser(raw: User): User {
     }
   }
 
-  // If role string is missing but roles array exists, derive role from first role
   if ((!raw.role || raw.role === "") && raw.roles && raw.roles.length > 0) {
     return {
       ...raw,
@@ -56,7 +44,6 @@ function normalizeUser(raw: User): User {
     }
   }
 
-  // Ensure defaults
   return {
     ...raw,
     roles: raw.roles ?? [],
@@ -68,6 +55,7 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  _hasHydrated: boolean
 }
 
 interface AuthActions {
@@ -75,6 +63,7 @@ interface AuthActions {
   clearAuth: () => void
   setLoading: (loading: boolean) => void
   checkAuth: () => boolean
+  setHasHydrated: (state: boolean) => void
 }
 
 type AuthStore = AuthState & AuthActions
@@ -82,12 +71,11 @@ type AuthStore = AuthState & AuthActions
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      // State
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      _hasHydrated: false,
 
-      // Actions
       setAuth: (rawUser: User, token: string) => {
         const user = normalizeUser(rawUser)
         tokenManager.setToken(token)
@@ -127,6 +115,10 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         return isAuth
+      },
+
+      setHasHydrated: (state: boolean) => {
+        set({ _hasHydrated: state })
       }
     }),
     {
@@ -141,18 +133,12 @@ export const useAuthStore = create<AuthStore>()(
             console.error("Failed to rehydrate auth store:", error)
             return
           }
-          // Re-normalize user data after rehydration from localStorage.
-          // Direct mutation doesn't trigger re-render, so we use
-          // the store's set() via getState() to force an update.
-          if (state?.user) {
-            const normalized = normalizeUser(state.user)
-            // Only update if something changed (to avoid infinite loop)
-            const needsUpdate =
-              normalized.roles !== state.user.roles ||
-              normalized.permissions !== state.user.permissions
-            if (needsUpdate) {
-              state.user = normalized
+          if (state) {
+            const updates: Partial<AuthState> = { _hasHydrated: true }
+            if (state.user) {
+              updates.user = normalizeUser(state.user)
             }
+            useAuthStore.setState(updates)
           }
         }
       }

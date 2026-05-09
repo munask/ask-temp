@@ -6,7 +6,7 @@ type Props = {
 };
 
 export default async function DashboardLayout({ children, params }: Props) {
-  void params;
+  await params;
   return (
     <Layouts>
       {children}

@@ -43,7 +43,7 @@ type Props = {
 };
 
 export default async function RootLayout({ children, params }: Props) {
-  void params;
+  await params;
   return (
     <html lang="ar" suppressHydrationWarning>
       <body

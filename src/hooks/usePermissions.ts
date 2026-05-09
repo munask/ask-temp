@@ -16,7 +16,7 @@ export const usePermissions = () => {
   // Collect all permissions from roles + direct overrides
   const allPermissions: Permission[] = useMemo(() => {
     if (!user) return [];
-    return collectPermissions(user.roles, user.permissions);
+    return collectPermissions(user.roles ?? [], user.permissions ?? []);
   }, [user]);
 
   // ─── New Resource-Action API ───────────────────────────────────────────

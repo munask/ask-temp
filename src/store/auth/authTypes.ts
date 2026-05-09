@@ -6,12 +6,11 @@ export interface User {
   id: number
   userName: string
   fullName: string
-  /** @deprecated Use roles[] instead. Kept for backward compat with backend. */
   role: string
-  /** User's assigned roles (from backend or resolved from role string) */
-  roles: Role[]
-  /** Direct per-user permission overrides (on top of role permissions) */
-  permissions: Permission[]
+  /** User's assigned roles. May be undefined for old data from localStorage. */
+  roles?: Role[]
+  /** Direct per-user permission overrides. May be undefined for old data. */
+  permissions?: Permission[]
   isTempPass: boolean
   createdAt?: string
   updatedAt?: string

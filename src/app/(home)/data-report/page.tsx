@@ -5,6 +5,6 @@ export default async function DataReportPage({
 }: {
   params: Promise<Record<string, string | string[]>>;
 }) {
-  void params;
+  await params;
   return <DataReport />;
 }
