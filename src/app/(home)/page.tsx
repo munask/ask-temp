@@ -277,7 +277,12 @@ function PieChartComponent() {
   )
 }
 
-export default function Home() {
+export default function Home({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  React.use(paramsPromise);
   const [isLoading, setIsLoading] = React.useState(true)
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("desktop")

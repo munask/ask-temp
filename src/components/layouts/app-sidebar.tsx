@@ -15,8 +15,14 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/store/auth/authStore";
 import { navbarData, getFilteredNavbarDataByPermission } from "./navbarData";
-import { ROLE_LABELS } from "@/types/permissions";
+import { ROLE_LABELS, ROLE_PERMISSIONS } from "@/types/permissions";
+import type { Role, Permission, Resource } from "@/types/permissions";
 import { collectPermissions } from "@/lib/permissions";
+
+// Resources all authenticated users can read (used as fallback)
+const DEFAULT_READ_RESOURCES: Resource[] = [
+  "dashboard", "profile", "settings", "data", "data-report", "showcase",
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore();
@@ -24,20 +30,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const filteredNavData = React.useMemo(() => {
     if (!user) return { sections: [] };
 
-    // Collect permissions from user's roles + direct overrides
-    const roles = user.roles ?? [];
-    const directPerms = user.permissions ?? [];
+    // Build effective roles from user data (handles old format where roles is empty)
+    let roles: Role[] = user.roles ?? [];
 
-    if (roles.length > 0) {
-      const permissions = collectPermissions(roles, directPerms);
-      // If permissions were resolved, use permission-based filtering
-      if (permissions.length > 0) {
-        return getFilteredNavbarDataByPermission(permissions);
-      }
+    if (roles.length === 0 && user.role) {
+      const rolePerms = ROLE_PERMISSIONS[user.role] ?? (
+        DEFAULT_READ_RESOURCES.map((r) => ({ resource: r, action: "read" as const }))
+      );
+      roles = [{ id: user.role, name: user.role, permissions: rolePerms }];
     }
 
-    // Fallback: show all nav items for authenticated users
-    // This handles unknown roles or old data where no permissions are mapped
+    const directPerms = user.permissions ?? [];
+    const permissions = collectPermissions(roles, directPerms);
+
+    // If permissions were resolved, use permission-based filtering
+    if (permissions.length > 0) {
+      return getFilteredNavbarDataByPermission(permissions);
+    }
+
+    // Last resort: show all nav items
     return { sections: navbarData.sections };
   }, [user]);
 

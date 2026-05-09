@@ -62,7 +62,12 @@ const FORM_STYLES = [
   },
 ]
 
-export default function FormsIndexPage() {
+export default function FormsIndexPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  React.use(paramsPromise);
   return (
     <div className="space-y-8" dir="rtl">
       <PageHeader

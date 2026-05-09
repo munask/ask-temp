@@ -6,6 +6,7 @@ import {
   FileText,
   User,
   LayoutGrid,
+  ShieldCheck,
 } from "lucide-react";
 import type { Resource, Action, Permission } from "@/types/permissions";
 import { hasPermission } from "@/lib/permissions";
@@ -76,6 +77,17 @@ export const navbarData: NavbarData = {
           url: "/showcase",
           icon: LayoutGrid,
           permission: { resource: "showcase", action: "read" },
+        },
+      ],
+    },
+    {
+      label: "الإدارة",
+      items: [
+        {
+          title: "إدارة المستخدمين",
+          url: "/admin",
+          icon: ShieldCheck,
+          permission: { resource: "users", action: "manage" },
         },
       ],
     },

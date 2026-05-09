@@ -20,7 +20,12 @@ const STEPS = [
   { id: 4, title: "التأكيد", icon: Sparkles },
 ] as const
 
-export default function StepperFormPage() {
+export default function StepperFormPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  React.use(paramsPromise);
   const [currentStep, setCurrentStep] = React.useState(1)
   const [direction, setDirection] = React.useState<"forward" | "back">("forward")
 

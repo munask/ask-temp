@@ -38,7 +38,12 @@ const SECTIONS: SectionConfig[] = [
   { id: "security", title: "الأمان والخصوصية", description: "إعدادات الأمان", icon: ShieldCheck, required: true },
 ]
 
-export default function SectionsFormPage() {
+export default function SectionsFormPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  React.use(paramsPromise);
   const [openSections, setOpenSections] = React.useState<Set<string>>(
     new Set(["personal"])
   )

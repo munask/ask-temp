@@ -1,14 +1,15 @@
 import Layouts from "@/components/layouts";
 
- 
-export default function DashboardLayout({
-  children,
-}: Readonly<{
+type Props = {
   children: React.ReactNode;
-}>) {
-  return ( 
-    <Layouts >
-        {children}    
+  params: Promise<Record<string, string | string[]>>;
+};
+
+export default async function DashboardLayout({ children, params }: Props) {
+  void params;
+  return (
+    <Layouts>
+      {children}
     </Layouts>
   );
 }

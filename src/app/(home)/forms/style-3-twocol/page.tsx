@@ -29,7 +29,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/common/page-header"
 import { toastSuccess, toastInfo } from "@/components/common/toast-wrapper"
 
-export default function TwoColFormPage() {
+export default function TwoColFormPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  React.use(paramsPromise);
   const [formData, setFormData] = React.useState({
     fullName: "", nationalId: "", email: "", phone: "", dob: "", gender: "",
     nationality: "", maritalStatus: "",

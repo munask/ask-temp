@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { Check } from "lucide-react"
 import { useColorThemeStore } from "@/store/colorTheme/colorThemeStore"
 import {
@@ -103,7 +104,12 @@ const fontWeights: { id: FontWeight; label: string }[] = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function SettingsPage() {
+export default function SettingsPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  use(paramsPromise);
   const { colorTheme, setColorTheme } = useColorThemeStore()
   const { fontId, fontSize, fontWeight, setFontId, setFontSize, setFontWeight } = useTypographyStore()
 

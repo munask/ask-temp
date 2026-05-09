@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Users, TrendingUp, ShieldCheck, Loader2, Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,12 @@ const features = [
   { icon: ShieldCheck, text: "أمان بيانات على مستوى المؤسسة" },
 ];
 
-export default function LoginPage() {
+export default function LoginPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  use(paramsPromise);
   const router = useRouter();
   const { setAuth } = useAuthStore();
   const { login, changePassword, loading } = useAuth();

@@ -1,12 +1,13 @@
- 
-export default function AuthLayout({
-  children,
-}: Readonly<{
+type Props = {
   children: React.ReactNode;
-}>) {
-  return ( 
+  params: Promise<Record<string, string | string[]>>;
+};
+
+export default async function AuthLayout({ children, params }: Props) {
+  void params;
+  return (
     <>
-        {children}    
+      {children}
     </>
   );
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, use } from "react"
 import { ShieldCheck, Loader2, Lock, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,12 @@ function SectionHeader({ title }: { title: string }) {
   )
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  use(paramsPromise);
   const { user } = useAuthStore()
   const { changePassword, loading } = useAuth()
 

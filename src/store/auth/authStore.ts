@@ -4,9 +4,20 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { tokenManager } from "@/lib/tokenManager"
 import { ROLE_PERMISSIONS } from "@/types/permissions"
-import type { Role, Permission } from "@/types/permissions"
+import type { Role, Permission, Resource } from "@/types/permissions"
 
 import type { User } from './authTypes';
+
+// Resources that all authenticated users can read by default
+// (used for backward compat when the backend returns unmapped roles)
+const ALL_READ_RESOURCES: Resource[] = [
+  "dashboard",
+  "profile",
+  "settings",
+  "data",
+  "data-report",
+  "showcase",
+]
 
 // ─── Normalize User Data ─────────────────────────────────────────────────
 // The backend may return:
@@ -17,7 +28,12 @@ import type { User } from './authTypes';
 function normalizeUser(raw: User): User {
   // If roles array is missing but role string exists, build roles from it
   if ((!raw.roles || raw.roles.length === 0) && raw.role) {
-    const rolePermissions = ROLE_PERMISSIONS[raw.role] ?? []
+    // If the role is known in ROLE_PERMISSIONS, use its permissions.
+    // Otherwise, grant read access to all non-admin resources (backward compat
+    // for domain-specific roles that aren't mapped in ROLE_PERMISSIONS).
+    const rolePermissions = ROLE_PERMISSIONS[raw.role] ?? (
+      ALL_READ_RESOURCES.map((resource) => ({ resource, action: "read" as const }))
+    )
     const roles: Role[] = [
       {
         id: raw.role,
@@ -76,7 +92,6 @@ export const useAuthStore = create<AuthStore>()(
         const user = normalizeUser(rawUser)
         tokenManager.setToken(token)
 
-        // Store user role in cookie for middleware access
         if (user.role) {
           tokenManager.setUserRole(user.role)
         }
@@ -122,18 +137,27 @@ export const useAuthStore = create<AuthStore>()(
       }),
       onRehydrateStorage: () => {
         return (state, error) => {
-          if (error) console.error("Failed to rehydrate auth store:", error)
-          // Re-normalize user data after rehydration from localStorage
+          if (error) {
+            console.error("Failed to rehydrate auth store:", error)
+            return
+          }
+          // Re-normalize user data after rehydration from localStorage.
+          // Direct mutation doesn't trigger re-render, so we use
+          // the store's set() via getState() to force an update.
           if (state?.user) {
-            state.user = normalizeUser(state.user)
+            const normalized = normalizeUser(state.user)
+            // Only update if something changed (to avoid infinite loop)
+            const needsUpdate =
+              normalized.roles !== state.user.roles ||
+              normalized.permissions !== state.user.permissions
+            if (needsUpdate) {
+              state.user = normalized
+            }
           }
         }
       }
     }
   )
 )
-
-// ─── Re-export helpers for direct import ─────────────────────────────────
-// Useful for non-React contexts (middleware, utilities).
 
 export type { Role, Permission }

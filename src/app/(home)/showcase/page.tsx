@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, use } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -582,7 +582,12 @@ function UtilityTab() {
 
 // ─── Main Showcase Page ──────────────────────────────────────────────────────────
 
-export default function ShowcasePage() {
+export default function ShowcasePage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  use(paramsPromise);
   return (
     <div className="space-y-6">
       <PageHeader

@@ -37,11 +37,13 @@ export const metadata: Metadata = {
   description: "منصة متكاملة لإدارة البيانات والسجلات",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+type Props = {
   children: React.ReactNode;
-}>) {
+  params: Promise<Record<string, string | string[]>>;
+};
+
+export default async function RootLayout({ children, params }: Props) {
+  void params;
   return (
     <html lang="ar" suppressHydrationWarning>
       <body

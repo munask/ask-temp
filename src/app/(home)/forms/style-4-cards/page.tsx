@@ -49,7 +49,12 @@ interface SkillEntry {
   level: "beginner" | "intermediate" | "advanced" | "expert"
 }
 
-export default function CardFormPage() {
+export default function CardFormPage({
+  params: paramsPromise,
+}: {
+  params: Promise<Record<string, string | string[]>>;
+}) {
+  React.use(paramsPromise);
   const [experiences, setExperiences] = React.useState<ExperienceEntry[]>([
     { id: "1", company: "", role: "", from: "", to: "", description: "" },
   ])
