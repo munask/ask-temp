@@ -4,6 +4,22 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
+const args = process.argv.slice(2);
+let targetDir = args[0] || process.cwd();
+
+// Allow relative paths and resolve
+if (!path.isAbsolute(targetDir)) {
+  targetDir = path.resolve(process.cwd(), targetDir);
+}
+
+// Verify it's a valid project directory
+const packageJsonPath = path.join(targetDir, 'package.json');
+if (!fs.existsSync(packageJsonPath)) {
+  console.error(`Error: No package.json found in "${targetDir}"`);
+  console.error('Please ensure you are in a valid project directory.');
+  process.exit(1);
+}
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -14,6 +30,7 @@ const question = (prompt) =>
 
 async function main() {
   console.log('\n=== Project Initialization ===\n');
+  console.log(`Target directory: ${targetDir}\n`);
 
   const projectName = await question('Project name (e.g., my-project): ');
   const frontendName = await question('Frontend name (e.g., my-frontend): ');
@@ -22,7 +39,7 @@ async function main() {
 
   rl.close();
 
-  const rootDir = __dirname;
+  const rootDir = targetDir;
 
   // Update root package.json name
   const rootPkgPath = path.join(rootDir, 'package.json');

@@ -1,7 +1,13 @@
 {
   "name": "ask-temp",
   "version": "1.0.0",
-  "private": true,
+  "description": "Initialize a new project with custom names and database configuration",
+  "author": "alaskarian dev",
+  "license": "MIT",
+  "private": false,
+  "bin": {
+    "project-init": "./bin/index.js"
+  },
   "scripts": {
     "init": "node bin/index.js",
     "dev:backend": "cd backend && npm run dev",
