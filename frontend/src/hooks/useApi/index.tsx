@@ -291,7 +291,7 @@ export const useApiData = <T extends object = object>(
         }
     }, [pagination, params.page, loading]);
 
-    const getRef = useRef<() => Promise<unknown>>()
+    const getRef = useRef<(() => Promise<unknown>) | null>(null)
   useEffect(() => { getRef.current = get }, [get])
 
     const updateParams = useCallback((newParams: Record<string, unknown>, refetch = true): void => {

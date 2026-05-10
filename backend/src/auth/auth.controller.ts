@@ -35,9 +35,29 @@ export class AuthController {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = q.search ? { OR: [{ fullName: { contains: q.search } }, { userName: { contains: q.search } }] } : {}
     const [items, total] = await Promise.all([
-      this.auth.prisma.user.findMany({ where, skip, take: limit, orderBy: { id: 'desc' }, select: { id: true, userName: true, fullName: true, role: true, isTempPass: true, createdAt: true } }),
+      this.auth.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { id: 'desc' },
+        include: {
+          roleRelation: { include: { permissions: true } },
+          permissions: true,
+        },
+      }),
       this.auth.prisma.user.count({ where }),
     ])
-    return { status: 'success', data: { items, pagination: { current_page: page, per_page: limit, total_items: total, total_pages: Math.ceil(total / limit) } } }
+    const mapped = items.map(u => ({
+      id: u.id,
+      userName: u.userName,
+      fullName: u.fullName,
+      role: u.role,
+      roleId: u.roleId,
+      roles: u.roleRelation ? [u.roleRelation] : [],
+      permissions: u.permissions.map(p => ({ resource: p.resource, action: p.action })),
+      isTempPass: u.isTempPass,
+      createdAt: u.createdAt,
+    }))
+    return { status: 'success', data: { items: mapped, pagination: { current_page: page, per_page: limit, total_items: total, total_pages: Math.ceil(total / limit) } } }
   }
 }

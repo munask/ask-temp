@@ -7,15 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  displayName String
+  description String?
+  permissions Permission[]
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Permission {
+  id       String  @id @default(cuid())
+  resource String
+  action   String
+  roleId   String?
+  role     Role?   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  userId   Int?
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, resource, action])
+  @@unique([userId, resource, action])
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  userName  String   @unique
-  fullName  String
-  password  String
-  role      String   @default("viewer")
-  isTempPass Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int         @id @default(autoincrement())
+  userName    String      @unique
+  fullName    String
+  password    String
+  role        String      @default("viewer")
+  roleId      String?
+  roleRelation Role?      @relation(fields: [roleId], references: [id])
+  isTempPass  Boolean     @default(true)
+  permissions Permission[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model DataRecord {

@@ -30,7 +30,7 @@ export default function DataList() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [isExporting, setIsExporting] = useState(false)
 
-  const { data: apiData, loading, post, del, get, updateParams } = useApiData<DataRecord>('/api/data', {
+  const { data: apiData, loading, post, delete: del, get, updateParams } = useApiData<DataRecord>('/api/data', {
     enableFetch: false,
     pagination: true,
   })

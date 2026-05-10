@@ -6,6 +6,7 @@ export interface AdminUser {
   userName: string
   fullName: string
   role: string
+  roleId: string | null
   roles: Role[]
   permissions: Permission[]
   isTempPass: boolean

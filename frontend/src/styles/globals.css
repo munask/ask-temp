@@ -138,6 +138,28 @@ html {
   background-image: radial-gradient(circle, oklch(1 0 0 / 0.06) 1px, transparent 1px);
 }
 
+/* ─── Dark mode profile page overrides ─── */
+.dark .profile-stat-pill {
+  background-color: oklch(0.22 0.02 240 / 0.5) !important;
+  border-color: oklch(0.30 0.03 240 / 0.6);
+}
+.dark .profile-perm-row:hover {
+  background-color: oklch(0.24 0.02 240 / 0.4) !important;
+}
+.dark .profile-card-info-banner {
+  background-color: oklch(0.20 0.02 240 / 0.5);
+  border-color: oklch(0.30 0.03 240 / 0.5);
+}
+.dark .profile-btn-shimmer:hover {
+  box-shadow: 0 4px 20px oklch(0.55 0.15 192 / 0.3);
+}
+.dark .avatar-ring-opacity {
+  --avatar-ring-opacity: 0.75;
+}
+.dark .profile-avatar-ring {
+  opacity: 0.7;
+}
+
 /* Page enter animation */
 @keyframes page-enter {
   from {

@@ -29,7 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
 
   // If user is logged in via setAuth (not from rehydration), treat as hydrated immediately
-  const effectiveHydrated = hydrated || (isAuthenticated && user && _hasHydrated === false && user?.roles?.length > 0);
+  const effectiveHydrated = hydrated || (isAuthenticated && user && _hasHydrated === false && (user.roles?.length ?? 0) > 0);
 
   const filteredNavData = React.useMemo(() => {
     // Wait for hydration to complete before rendering

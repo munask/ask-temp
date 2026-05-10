@@ -104,8 +104,12 @@ export const useAuthStore = create<AuthStore>()(
       onRehydrateStorage: () => {
         return (state) => {
           if (!state) return
-          const user = state.user ? normalizeUser(state.user) : null
-          set({ _hasHydrated: true, user })
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const store = state as any
+          if (store.user && typeof store.set === 'function') {
+            const user = normalizeUser(store.user)
+            store.set({ _hasHydrated: true, user })
+          }
         }
       },
     }

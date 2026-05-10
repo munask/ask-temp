@@ -26,7 +26,7 @@ export type Resource =
 
 // ─── Actions ─────────────────────────────────────────────────────────────
 
-export type Action = "read" | "write" | "delete" | "manage"
+export type Action = "read" | "write" | "edit" | "delete" | "lock" | "export" | "import" | "approve" | "manage"
 
 // ─── Permission ──────────────────────────────────────────────────────────
 
@@ -122,6 +122,11 @@ export const RESOURCE_LABELS: Record<Resource, string> = {
 export const ACTION_LABELS: Record<Action, string> = {
   read: "قراءة",
   write: "كتابة",
+  edit: "تعديل",
   delete: "حذف",
+  lock: "قفل",
+  export: "تصدير",
+  import: "استيراد",
+  approve: "اعتماد",
   manage: "إدارة كاملة",
 }

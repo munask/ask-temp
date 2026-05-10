@@ -8,14 +8,29 @@ export class AuthService {
   constructor(public prisma: PrismaService, private jwt: JwtService) {}
 
   async login(userName: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { userName } })
+    const user = await this.prisma.user.findUnique({
+      where: { userName },
+      include: {
+        roleRelation: { include: { permissions: true } },
+        permissions: true,
+      },
+    })
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return null
     }
     const token = this.jwt.sign({ sub: user.id, userName: user.userName })
     return {
       access_token: token,
-      user: { id: user.id, userName: user.userName, fullName: user.fullName, role: user.role, roles: [], permissions: [], isTempPass: user.isTempPass },
+      user: {
+        id: user.id,
+        userName: user.userName,
+        fullName: user.fullName,
+        role: user.role,
+        roleId: user.roleId,
+        roles: user.roleRelation ? [user.roleRelation] : [],
+        permissions: user.permissions.map(p => ({ resource: p.resource, action: p.action })),
+        isTempPass: user.isTempPass,
+      },
     }
   }
 

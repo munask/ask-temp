@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import {
   Users,
   Shield,
@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Lock,
   Loader2,
+  RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +29,7 @@ import { TextField, SelectField } from "@/components/common/form-fields"
 import { DeleteConfirmDialog } from "@/components/common/delete-confirm-dialog"
 import { useConfirmModal } from "@/components/common/confirm-modal"
 import { toast } from "sonner"
+import { useApiData } from "@/hooks/useApi"
 import type { AdminUser, AdminUserFormData, RoleFormData, AdminTab } from "./admin-types"
 import type { Permission, Role, Resource, Action } from "@/types/permissions"
 import {
@@ -38,7 +40,7 @@ import {
 } from "@/types/permissions"
 import { hasPermission } from "@/lib/permissions"
 
-// ─── Dummy Data ──────────────────────────────────────────────────────────
+// ─── Constants ──────────────────────────────────────────────────────────
 
 const ALL_RESOURCES: Resource[] = [
   "dashboard",
@@ -52,89 +54,7 @@ const ALL_RESOURCES: Resource[] = [
   "permissions",
 ]
 
-const ALL_ACTIONS: Action[] = ["read", "write", "delete", "manage"]
-
-const INITIAL_ROLES: Role[] = [
-  {
-    id: "admin",
-    name: "admin",
-    displayName: "مسؤول الشعبة",
-    permissions: ALL_RESOURCES.map((r) => ({ resource: r, action: "manage" })),
-  },
-  {
-    id: "editor",
-    name: "editor",
-    displayName: "محرر",
-    permissions: [
-      { resource: "dashboard", action: "read" },
-      { resource: "profile", action: "manage" },
-      { resource: "settings", action: "read" },
-      { resource: "data", action: "manage" },
-      { resource: "data-report", action: "read" },
-      { resource: "data-report", action: "write" },
-      { resource: "showcase", action: "read" },
-    ],
-  },
-  {
-    id: "viewer",
-    name: "viewer",
-    displayName: "مشاهد",
-    permissions: [
-      { resource: "dashboard", action: "read" },
-      { resource: "profile", action: "manage" },
-      { resource: "settings", action: "read" },
-      { resource: "data", action: "read" },
-      { resource: "data-report", action: "read" },
-      { resource: "showcase", action: "read" },
-    ],
-  },
-]
-
-const INITIAL_USERS: AdminUser[] = [
-  {
-    id: 1,
-    userName: "admin",
-    fullName: "أحمد محمد",
-    role: "admin",
-    roles: [INITIAL_ROLES[0]],
-    permissions: [],
-    isTempPass: false,
-    createdAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    userName: "editor1",
-    fullName: "سارة علي",
-    role: "editor",
-    roles: [INITIAL_ROLES[1]],
-    permissions: [{ resource: "users", action: "read" }],
-    isTempPass: false,
-    createdAt: "2024-03-20",
-  },
-  {
-    id: 3,
-    userName: "viewer1",
-    fullName: "محمد خالد",
-    role: "viewer",
-    roles: [INITIAL_ROLES[2]],
-    permissions: [],
-    isTempPass: true,
-    createdAt: "2024-06-10",
-  },
-  {
-    id: 4,
-    userName: "staff1",
-    fullName: "ليلى حسين",
-    role: "staff",
-    roles: [],
-    permissions: [
-      { resource: "data", action: "read" },
-      { resource: "data", action: "write" },
-    ],
-    isTempPass: false,
-    createdAt: "2024-08-05",
-  },
-]
+const ALL_ACTIONS: Action[] = ["read", "write", "edit", "delete", "lock", "export", "import", "approve", "manage"]
 
 // ─── Helper Functions ────────────────────────────────────────────────────
 
@@ -826,68 +746,91 @@ function PermissionsOverviewTab({ roles }: { roles: Role[] }) {
 // ─── Main Admin Component ────────────────────────────────────────────────
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState<AdminUser[]>(INITIAL_USERS)
-  const [roles, setRoles] = useState<Role[]>(INITIAL_ROLES)
   const [activeTab, setActiveTab] = useState<AdminTab>("users")
 
-  const handleAddUser = useCallback((data: AdminUserFormData) => {
-    const selectedRoles = roles.filter((r) => data.roleIds.includes(r.id))
-    const newUser: AdminUser = {
-      id: Math.max(...users.map((u) => u.id)) + 1,
-      fullName: data.fullName,
-      userName: data.userName,
-      role: data.roleIds[0] || "",
-      roles: selectedRoles,
-      permissions: data.permissions,
-      isTempPass: true,
-      createdAt: new Date().toISOString().split("T")[0],
+  // Roles API
+  const {
+    data: rolesData,
+    loading: rolesLoading,
+    post: postRole,
+    put: putRole,
+    delete: deleteRoleApi,
+    refetch: refetchRoles,
+  } = useApiData<Role[]>('/api/roles', { enableFetch: true, pagination: false })
+
+  // Users API
+  const {
+    data: usersData,
+    loading: usersLoading,
+    post: postUser,
+    put: putUser,
+    delete: deleteUserApi,
+    refetch: refetchUsers,
+  } = useApiData<{ items: AdminUser[] }>('/api/auth/users', { enableFetch: true, pagination: true })
+
+  // Refetch on tab switch to ensure fresh data
+  useEffect(() => {
+    if (activeTab === "users") refetchUsers()
+    if (activeTab === "roles") refetchRoles()
+  }, [activeTab])
+
+  const roles: Role[] = Array.isArray(rolesData) ? rolesData : []
+  const users: AdminUser[] =
+    (usersData as { data?: { items?: AdminUser[] } } | null)?.data?.items ?? []
+
+  const handleAddUser = useCallback(async (data: AdminUserFormData) => {
+    try {
+      await postUser({ data: { fullName: data.fullName, userName: data.userName, roleIds: data.roleIds }, customEndpoint: '/api/auth/register' })
+      toast.success("تمت إضافة المستخدم بنجاح")
+    } catch {
+      toast.error("فشل في إضافة المستخدم")
     }
-    setUsers((prev) => [...prev, newUser])
-  }, [users, roles])
+  }, [postUser])
 
-  const handleUpdateUser = useCallback((updated: AdminUser) => {
-    setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
-  }, [])
-
-  const handleDeleteUser = useCallback((id: number) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id))
-    toast.success("تم حذف المستخدم بنجاح")
-  }, [])
-
-  const handleAddRole = useCallback((data: RoleFormData) => {
-    const newRole: Role = {
-      id: data.id,
-      name: data.name,
-      displayName: data.displayName,
-      permissions: data.permissions,
+  const handleUpdateUser = useCallback(async (updated: AdminUser) => {
+    try {
+      await putUser({ data: { fullName: updated.fullName, role: updated.role }, customEndpoint: `/api/auth/users/${updated.id}` })
+      toast.success("تم تحديث المستخدم بنجاح")
+    } catch {
+      toast.error("فشل في تحديث المستخدم")
     }
-    setRoles((prev) => [...prev, newRole])
-    // Also update ROLE_PERMISSIONS and ROLE_LABELS
-  }, [])
+  }, [putUser])
 
-  const handleUpdateRole = useCallback((updated: Role) => {
-    setRoles((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-    // Also update users who have this role
-    setUsers((prev) =>
-      prev.map((u) => ({
-        ...u,
-        roles: u.roles.map((r) => (r.id === updated.id ? updated : r)),
-      }))
-    )
-  }, [])
+  const handleDeleteUser = useCallback(async (id: number) => {
+    try {
+      await deleteUserApi({ data: { id }, customEndpoint: `/api/auth/users/${id}` })
+      toast.success("تم حذف المستخدم بنجاح")
+    } catch {
+      toast.error("فشل في حذف المستخدم")
+    }
+  }, [deleteUserApi])
 
-  const handleDeleteRole = useCallback((id: string) => {
-    setRoles((prev) => prev.filter((r) => r.id !== id))
-    // Also remove from users
-    setUsers((prev) =>
-      prev.map((u) => ({
-        ...u,
-        roles: u.roles.filter((r) => r.id !== id),
-        role: u.role === id ? "" : u.role,
-      }))
-    )
-    toast.success("تم حذف الدور بنجاح")
-  }, [])
+  const handleAddRole = useCallback(async (data: RoleFormData) => {
+    try {
+      await postRole({ data: { name: data.name, displayName: data.displayName } })
+      toast.success("تمت إضافة الدور بنجاح")
+    } catch {
+      toast.error("فشل في إضافة الدور")
+    }
+  }, [postRole])
+
+  const handleUpdateRole = useCallback(async (updated: Role) => {
+    try {
+      await putRole({ data: { displayName: updated.displayName }, customEndpoint: `/api/roles/${updated.id}` })
+      toast.success("تم تحديث الدور بنجاح")
+    } catch {
+      toast.error("فشل في تحديث الدور")
+    }
+  }, [putRole])
+
+  const handleDeleteRole = useCallback(async (id: string) => {
+    try {
+      await deleteRoleApi({ customEndpoint: `/api/roles/${id}` })
+      toast.success("تم حذف الدور بنجاح")
+    } catch {
+      toast.error("فشل في حذف الدور")
+    }
+  }, [deleteRoleApi])
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -914,43 +857,55 @@ export default function AdminPanel() {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-5 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
+            {usersLoading ? (
+              <div className="flex items-center gap-3"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /><span className="text-sm text-muted-foreground">جاري التحميل...</span></div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{users.length}</p>
+                  <p className="text-xs text-muted-foreground">مستخدم</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{users.length}</p>
-                <p className="text-xs text-muted-foreground">مستخدم</p>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-5 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                <Shield className="h-5 w-5 text-blue-500" />
+            {rolesLoading ? (
+              <div className="flex items-center gap-3"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /><span className="text-sm text-muted-foreground">جاري التحميل...</span></div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                  <Shield className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{roles.length}</p>
+                  <p className="text-xs text-muted-foreground">دور</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{roles.length}</p>
-                <p className="text-xs text-muted-foreground">دور</p>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-5 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
-                <Key className="h-5 w-5 text-amber-500" />
+            {rolesLoading ? (
+              <div className="flex items-center gap-3"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                  <Key className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {new Set(roles.flatMap((r) => r.permissions?.map((p) => p.resource) ?? [])).size}
+                  </p>
+                  <p className="text-xs text-muted-foreground">مورد مع صلاحيات</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {new Set(roles.flatMap((r) => r.permissions.map((p) => p.resource))).size}
-                </p>
-                <p className="text-xs text-muted-foreground">مورد مع صلاحيات</p>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
