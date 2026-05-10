@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { DatePicker } from "@/components/ui/date-picker"
 import {
   Select,
   SelectContent,
@@ -78,12 +79,10 @@ export function DateField({
         {label}
         {required && <span className="text-destructive mr-1">*</span>}
       </Label>
-      <Input
-        type="date"
+      <DatePicker
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         disabled={disabled}
-        className="text-right"
       />
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>

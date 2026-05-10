@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FileSpreadsheet, Loader2 } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker"
 import ExcelJS from "exceljs"
 import { saveAs } from "file-saver"
 import type { DataRecord } from "./data-types"
@@ -286,20 +287,16 @@ export default function DataReport() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">التاريخ من</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-                className="text-xs h-8"
+                onChange={setDateFrom}
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">التاريخ إلى</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-                className="text-xs h-8"
+                onChange={setDateTo}
               />
             </div>
             <Button size="sm" className="w-full h-8 text-xs" onClick={handleApply}>

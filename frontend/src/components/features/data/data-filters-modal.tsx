@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { SlidersHorizontal } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker"
 
 export interface DataFilters {
   dateFrom: string
@@ -62,24 +62,16 @@ export default function DataFiltersModal({ filters, onApply, onReset }: DataFilt
             <DialogTitle>تصفية السجلات</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <div className="space-y-1">
-              <Label htmlFor="dateFrom">من تاريخ</Label>
-              <Input
-                id="dateFrom"
-                type="date"
-                value={local.dateFrom}
-                onChange={(e) => setLocal((prev) => ({ ...prev, dateFrom: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="dateTo">إلى تاريخ</Label>
-              <Input
-                id="dateTo"
-                type="date"
-                value={local.dateTo}
-                onChange={(e) => setLocal((prev) => ({ ...prev, dateTo: e.target.value }))}
-              />
-            </div>
+            <DatePicker
+              label="من تاريخ"
+              value={local.dateFrom}
+              onChange={(date) => setLocal((prev) => ({ ...prev, dateFrom: date }))}
+            />
+            <DatePicker
+              label="إلى تاريخ"
+              value={local.dateTo}
+              onChange={(date) => setLocal((prev) => ({ ...prev, dateTo: date }))}
+            />
             <div className="flex justify-start gap-2 pt-2">
               <Button onClick={handleApply}>تطبيق</Button>
               <Button variant="outline" onClick={handleReset}>

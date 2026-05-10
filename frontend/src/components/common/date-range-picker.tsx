@@ -1,8 +1,8 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { DatePicker } from "@/components/ui/date-picker"
 
 interface DateRangePickerProps {
   from?: string
@@ -27,20 +27,16 @@ export function DateRangePicker({
     <div className={cn("flex items-end gap-2", className)} dir="rtl">
       <div className="flex-1 space-y-1">
         <Label className="text-xs text-muted-foreground">{fromLabel}</Label>
-        <Input
-          type="date"
+        <DatePicker
           value={from}
-          onChange={(e) => onFromChange(e.target.value)}
-          className="h-8 text-xs"
+          onChange={onFromChange}
         />
       </div>
       <div className="flex-1 space-y-1">
         <Label className="text-xs text-muted-foreground">{toLabel}</Label>
-        <Input
-          type="date"
+        <DatePicker
           value={to}
-          onChange={(e) => onToChange(e.target.value)}
-          className="h-8 text-xs"
+          onChange={onToChange}
         />
       </div>
     </div>

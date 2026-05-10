@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { DatePicker } from "@/components/ui/date-picker"
 import { useDataStore } from "@/store/data/dataStore"
 import type { DataRecord } from "@/store/data/dataTypes"
 
@@ -121,16 +122,13 @@ export default function DataModal({
           </div>
           <div className="space-y-1">
             <Label htmlFor="date">التاريخ</Label>
-            <Input
-              id="date"
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(e) => {
-                setDate(e.target.value)
+              onChange={(d) => {
+                setDate(d)
                 if (errors.date)
                   setErrors((prev) => ({ ...prev, date: undefined }))
               }}
-              className="text-right"
             />
             {errors.date && (
               <p className="text-sm text-destructive">{errors.date}</p>

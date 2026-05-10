@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import {
   Select,
   SelectContent,
@@ -88,13 +89,11 @@ export function FiltersModal({
         return (
           <div key={field.key} className="space-y-1.5">
             <Label className="text-sm font-medium">{field.label}</Label>
-            <Input
-              type="date"
+            <DatePicker
               value={local[field.key] || ""}
-              onChange={(e) =>
-                setLocal((prev) => ({ ...prev, [field.key]: e.target.value }))
+              onChange={(val) =>
+                setLocal((prev) => ({ ...prev, [field.key]: val }))
               }
-              className="h-9"
             />
           </div>
         )

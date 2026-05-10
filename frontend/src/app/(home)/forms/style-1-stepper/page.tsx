@@ -4,7 +4,7 @@ import * as React from "react"
 import { Check, ChevronLeft, ChevronRight, User, Building2, FileText, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -331,11 +331,9 @@ function StepWorkInfo({
         </div>
         <div className="space-y-2">
           <Label htmlFor="startDate">تاريخ البدء</Label>
-          <Input
-            id="startDate"
-            type="date"
+          <DatePicker
             value={formData.startDate as string}
-            onChange={(e) => updateField("startDate", e.target.value)}
+            onChange={(val) => updateField("startDate", val)}
           />
         </div>
       </div>

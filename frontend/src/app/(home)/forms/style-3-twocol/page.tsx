@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -156,7 +157,7 @@ export default function TwoColFormPage({
                     <Input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} placeholder="07XX XXX XXXX" dir="ltr" className="text-left" />
                   </FormField>
                   <FormField icon={Calendar} label="تاريخ الميلاد">
-                    <Input type="date" value={formData.dob} onChange={(e) => updateField("dob", e.target.value)} />
+                    <DatePicker value={formData.dob} onChange={(val) => updateField("dob", val)} />
                   </FormField>
                   <FormField label="الجنس">
                     <Select value={formData.gender} onValueChange={(v) => updateField("gender", v)}>
@@ -226,7 +227,7 @@ export default function TwoColFormPage({
                     </Select>
                   </FormField>
                   <FormField icon={Calendar} label="تاريخ البدء">
-                    <Input type="date" value={formData.startDate} onChange={(e) => updateField("startDate", e.target.value)} />
+                    <DatePicker value={formData.startDate} onChange={(val) => updateField("startDate", val)} />
                   </FormField>
                   <FormField label="نوع العقد">
                     <Select value={formData.contractType} onValueChange={(v) => updateField("contractType", v)}>

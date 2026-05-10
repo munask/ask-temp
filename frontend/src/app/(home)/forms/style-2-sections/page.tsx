@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -220,7 +221,10 @@ function PersonalSection({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="s-dob">تاريخ الميلاد</Label>
-        <Input id="s-dob" type="date" value={formData.dob as string} onChange={(e) => updateField("dob", e.target.value)} />
+        <DatePicker
+          value={formData.dob as string}
+          onChange={(val) => updateField("dob", val)}
+        />
       </div>
     </div>
   )

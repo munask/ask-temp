@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -221,11 +222,11 @@ export default function CardFormPage({
                     </div>
                     <div className="space-y-1.5">
                       <Label>من</Label>
-                      <Input type="date" value={exp.from} onChange={(e) => updateExperience(exp.id, "from", e.target.value)} />
+                      <DatePicker value={exp.from} onChange={(date) => updateExperience(exp.id, "from", date)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label>إلى</Label>
-                      <Input type="date" value={exp.to} onChange={(e) => updateExperience(exp.id, "to", e.target.value)} />
+                      <DatePicker value={exp.to} onChange={(date) => updateExperience(exp.id, "to", date)} />
                     </div>
                     <div className="sm:col-span-2 space-y-1.5">
                       <Label>وصف المهام</Label>
