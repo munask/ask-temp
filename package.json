@@ -1,6 +1,6 @@
 {
   "name": "ask-temp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Initialize a new project with custom names and database configuration",
   "author": "alaskarian dev",
   "license": "MIT",
