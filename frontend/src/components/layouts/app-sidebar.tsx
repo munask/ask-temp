@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { useAuthStore } from "@/store/auth/authStore";
+import { useAuthStore, useAuthStoreHydrated } from "@/store/auth/authStore";
 import { navbarData, getFilteredNavbarDataByPermission } from "./navbarData";
 import { ROLE_LABELS, ROLE_PERMISSIONS } from "@/types/permissions";
 import type { Role, Permission, Resource } from "@/types/permissions";
@@ -25,14 +25,22 @@ const DEFAULT_READ_RESOURCES: Resource[] = [
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const hydrated = useAuthStoreHydrated()
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
 
+  // If user is logged in via setAuth (not from rehydration), treat as hydrated immediately
+  const effectiveHydrated = hydrated || (isAuthenticated && user && _hasHydrated === false && user?.roles?.length > 0);
+
   const filteredNavData = React.useMemo(() => {
-    // Wait for hydration to avoid flash of empty sidebar
-    if (!_hasHydrated) return { sections: [] };
+    // Wait for hydration to complete before rendering
+    if (!effectiveHydrated) {
+      return { sections: [] };
+    }
 
     // Not authenticated = no sidebar items
-    if (!isAuthenticated || !user) return { sections: [] };
+    if (!isAuthenticated || !user) {
+      return { sections: [] };
+    }
 
     // Get roles - may be undefined for old localStorage data
     let roles: Role[] = user.roles ?? [];
@@ -55,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     // Fallback: show all nav items for any authenticated user
     return { sections: navbarData.sections };
-  }, [user, isAuthenticated, _hasHydrated]);
+  }, [user, isAuthenticated, _hasHydrated, effectiveHydrated]);
 
   const roleLabel = user?.role
     ? (ROLE_LABELS[user.role] ?? user.role)

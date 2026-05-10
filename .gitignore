@@ -18,7 +18,7 @@ backend/node_modules
 # next.js
 /.claude/
 frontend/.next/
-backend/.next/
+backend/dist/
 /out/
 
 # production

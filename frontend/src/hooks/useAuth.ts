@@ -66,7 +66,7 @@ export const useAuth = () => {
 
   const login = useCallback(async (options: MutationOptions<LoginCredentials> = {}, retryAttempts = 0): Promise<AuthApiResponse<LoginResponse> | null> => {
     const { data: credentials, customEndpoint, onSuccess, onError } = options;
-    const url = customEndpoint || '/auth/login';
+    const url = customEndpoint || '/api/auth/login';
 
     cancel();
     abortControllerRef.current = new AbortController();

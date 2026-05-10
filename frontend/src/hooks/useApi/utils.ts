@@ -7,38 +7,40 @@ export const buildURL = (endpoint: string): string => {
 
 export const buildBaseURL = (endpoint: string, resourceId?: string | number | null): string => {
     if (resourceId) {
-        const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
-        const singleResourceEndpoint = `${cleanEndpoint}/${resourceId}`;
-        return buildURL(singleResourceEndpoint);
+        const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint
+        return `${cleanEndpoint}/${resourceId}`
     }
-    return buildURL(endpoint);
-};
+    return endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint
+}
 
 export const buildFetchURL = (
-    endpoint: string, 
-    params: ApiParams, 
-    limitItems?: number | null, 
+    endpoint: string,
+    params: ApiParams,
+    limitItems?: number | null,
     resourceId?: string | number | null
 ): string | null => {
-    const baseURL = buildBaseURL(endpoint, resourceId);
-    
     if (resourceId) {
-        const url = new URL(baseURL, window.location.origin);
-        return url.href.includes("/undefined/") ? null : `${url.pathname}${url.search}`;
+        const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint
+        return `${cleanEndpoint}/${resourceId}`
     }
-    
-    const url = new URL(baseURL, window.location.origin);
-    
+
+    let url = endpoint
+    const queryParams: string[] = []
+
     Object.entries(params).forEach(([key, value]) => {
         if (value !== "" && value != null) {
-            url.searchParams.append(key, String(value));
+            queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
         }
-    });
-    
-    if (limitItems) url.searchParams.append("limit", String(limitItems));
-    
-    return url.href.includes("/undefined/") ? null : `${url.pathname}${url.search}`;
-};
+    })
+
+    if (limitItems) queryParams.push(`limit=${limitItems}`)
+
+    if (queryParams.length > 0) {
+        url += '?' + queryParams.join('&')
+    }
+
+    return url
+}
 
 export const handleApiError = (error: unknown): string => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

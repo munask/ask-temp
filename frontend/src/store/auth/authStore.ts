@@ -1,27 +1,27 @@
 "use client"
 
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import { tokenManager } from "@/lib/tokenManager"
-import { ROLE_PERMISSIONS } from "@/types/permissions"
-import type { Role, Permission, Resource } from "@/types/permissions"
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { useEffect, useState } from 'react'
+import { ROLE_PERMISSIONS } from '@/types/permissions'
+import type { Role, Permission, Resource } from '@/types/permissions'
 
-import type { User } from './authTypes';
+import type { User } from './authTypes'
 
 // Resources that all authenticated users can read by default
 const ALL_READ_RESOURCES: Resource[] = [
-  "dashboard",
-  "profile",
-  "settings",
-  "data",
-  "data-report",
-  "showcase",
+  'dashboard',
+  'profile',
+  'settings',
+  'data',
+  'data-report',
+  'showcase',
 ]
 
 function normalizeUser(raw: User): User {
   if ((!raw.roles || raw.roles.length === 0) && raw.role) {
     const rolePermissions = ROLE_PERMISSIONS[raw.role] ?? (
-      ALL_READ_RESOURCES.map((resource) => ({ resource, action: "read" as const }))
+      ALL_READ_RESOURCES.map((resource) => ({ resource, action: 'read' as const }))
     )
     const roles: Role[] = [
       {
@@ -37,7 +37,7 @@ function normalizeUser(raw: User): User {
     }
   }
 
-  if ((!raw.role || raw.role === "") && raw.roles && raw.roles.length > 0) {
+  if ((!raw.role || raw.role === '') && raw.roles && raw.roles.length > 0) {
     return {
       ...raw,
       role: raw.roles[0].id,
@@ -62,7 +62,6 @@ interface AuthActions {
   setAuth: (user: User, token: string) => void
   clearAuth: () => void
   setLoading: (loading: boolean) => void
-  checkAuth: () => boolean
   setHasHydrated: (state: boolean) => void
 }
 
@@ -70,7 +69,7 @@ type AuthStore = AuthState & AuthActions
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -78,72 +77,53 @@ export const useAuthStore = create<AuthStore>()(
 
       setAuth: (rawUser: User, token: string) => {
         const user = normalizeUser(rawUser)
-        tokenManager.setToken(token)
-
-        if (user.role) {
-          tokenManager.setUserRole(user.role)
-        }
-
-        set({
-          user,
-          isAuthenticated: true,
-          isLoading: false
+        import('@/lib/tokenManager').then(({ tokenManager }) => {
+          tokenManager.setToken(token)
+          if (user.role) tokenManager.setUserRole(user.role)
         })
+        set({ user, isAuthenticated: true, isLoading: false, _hasHydrated: true })
       },
 
       clearAuth: () => {
-        tokenManager.removeToken()
-
-        set({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false
+        import('@/lib/tokenManager').then(({ tokenManager }) => {
+          tokenManager.removeToken()
         })
+        set({ user: null, isAuthenticated: false, isLoading: false })
       },
 
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading })
-      },
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
 
-      checkAuth: () => {
-        const hasToken = tokenManager.hasToken()
-        const { user } = get()
-        const isAuth = hasToken && !!user
-
-        if (isAuth !== get().isAuthenticated) {
-          set({ isAuthenticated: isAuth })
-        }
-
-        return isAuth
-      },
-
-      setHasHydrated: (state: boolean) => {
-        set({ _hasHydrated: state })
-      }
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
     }),
     {
-      name: "auth-store",
+      name: 'auth-store',
       partialize: (state) => ({
         user: state.user,
-        isAuthenticated: state.isAuthenticated
+        isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => {
-        return (state, error) => {
-          if (error) {
-            console.error("Failed to rehydrate auth store:", error)
-            return
-          }
-          if (state) {
-            const updates: Partial<AuthState> = { _hasHydrated: true }
-            if (state.user) {
-              updates.user = normalizeUser(state.user)
-            }
-            useAuthStore.setState(updates)
-          }
+        return (state) => {
+          if (!state) return
+          const user = state.user ? normalizeUser(state.user) : null
+          set({ _hasHydrated: true, user })
         }
-      }
+      },
     }
   )
 )
+
+// Hook to wait for hydration before consuming the store
+export function useAuthStoreHydrated() {
+  const hasHydrated = useAuthStore((s) => s._hasHydrated)
+  const [, setReady] = useState(false)
+
+  useEffect(() => {
+    if (hasHydrated) {
+      setReady(true)
+    }
+  }, [hasHydrated])
+
+  return hasHydrated
+}
 
 export type { Role, Permission }

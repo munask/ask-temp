@@ -6,7 +6,7 @@
     "ask-temp": "./bin/index.js"
   },
   "scripts": {
-    "dev": "next dev --turbopack --port 4000",
+    "dev": "next dev --turbopack --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

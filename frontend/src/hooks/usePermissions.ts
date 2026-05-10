@@ -8,7 +8,7 @@ import {
   collectPermissions,
   hasRoleId,
 } from "@/lib/permissions";
-import type { Resource, Action, Permission } from "@/types/permissions";
+import type { Resource, Action, Permission, Role } from "@/types/permissions";
 
 export const usePermissions = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -52,13 +52,15 @@ export const usePermissions = () => {
   /** Check if user has a specific role by ID */
   const hasRole = (roleId: string): boolean => {
     if (!isAuthenticated || !user?.roles) return false;
-    return hasRoleId(user.roles, roleId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return hasRoleId(user.roles as Role[], roleId);
   };
 
   /** Check if user has ANY of the given roles */
   const hasAnyRole = (roleIds: string[]): boolean => {
     if (!isAuthenticated || !user?.roles) return false;
-    return roleIds.some((id) => hasRoleId(user.roles, id));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return roleIds.some((id) => hasRoleId(user.roles as Role[], id));
   };
 
   /** Check if user has the "admin" role */

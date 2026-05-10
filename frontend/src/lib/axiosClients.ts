@@ -2,7 +2,7 @@ import axios from "axios";
 import { tokenManager } from "./tokenManager";
 
 // API configuration
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 
 

@@ -20,8 +20,8 @@ interface BaseFieldProps {
 }
 
 interface TextFieldProps extends BaseFieldProps {
-  value: string
-  onChange: (value: string) => void
+  value?: string
+  onChange?: (value: string) => void
   placeholder?: string
   disabled?: boolean
   type?: "text" | "number" | "email" | "password"
@@ -29,7 +29,7 @@ interface TextFieldProps extends BaseFieldProps {
 
 export function TextField({
   label,
-  value,
+  value = "",
   onChange,
   placeholder,
   error,
@@ -47,7 +47,7 @@ export function TextField({
       <Input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
         className="text-right"

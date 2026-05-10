@@ -152,7 +152,7 @@ export const useApiData = <T extends object = object>(
         } finally { 
             if (isMountedRef.current) setLoading(false);
         }
-    }, [endpoint, params, limitItems, resourceId, data, retryAttempts, retryCount, retryDelay, infiniteScroll, cancel]);
+    }, [endpoint, params, limitItems, resourceId, retryAttempts, retryCount, retryDelay, infiniteScroll, cancel]);
 
     const retry = useCallback(() => get(), [get]);
 
@@ -291,11 +291,34 @@ export const useApiData = <T extends object = object>(
         }
     }, [pagination, params.page, loading]);
 
-    const updateParams = useCallback((newParams: Record<string, unknown>, refetch: boolean = true): void => {
-        if (!loading) {
-            setParams(prev => ({ ...prev, ...newParams }));
-        }
-    }, [loading]);
+    const getRef = useRef<() => Promise<unknown>>()
+  useEffect(() => { getRef.current = get }, [get])
+
+    const updateParams = useCallback((newParams: Record<string, unknown>, refetch = true): void => {
+        setParams(prev => {
+            const updated = { ...prev, ...newParams }
+            if (refetch && isMountedRef.current) {
+                // Small delay to let state update first
+                setTimeout(() => {
+                    const freshURL = buildFetchURL(endpoint, updated, limitItems, resourceId)
+                    if (freshURL && isMountedRef.current) {
+                        apiClient.get(freshURL).then(res => {
+                            if (isMountedRef.current) {
+                                setData(res.data as ApiResponse<T> | SingleApiResponse<T>)
+                                setLoading(false)
+                            }
+                        }).catch(err => {
+                            if (isMountedRef.current && err.name !== 'AbortError') {
+                                setFetchError(handleApiError(err))
+                                setLoading(false)
+                            }
+                        })
+                    }
+                }, 50)
+            }
+            return updated
+        })
+    }, [endpoint, limitItems, resourceId])
 
     const updatePage = useCallback((page: number): void => {
         if (pagination && !loading) {
